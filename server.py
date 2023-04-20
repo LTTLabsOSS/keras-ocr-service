@@ -74,7 +74,7 @@ def process():
         file_path = os.path.join(upload_dir, file_name)
         f.save(file_path)
         result = find_word(word, file_path)
-        os.remove(file_path)
+        # os.remove(file_path)
         return result
 
 
