@@ -12,7 +12,7 @@ from waitress import serve
 pipeline = keras_ocr.pipeline.Pipeline()
 
 upload_dir = "uploaded"
-output_dir = "test_output_keras"
+output_dir = "output"
 
 # keras-ocr will automatically download pretrained
 # weights for the detector and recognizer.
@@ -26,7 +26,6 @@ def find_word(word, screenshot):
     image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
     pred = pipeline.recognize([image])[0]
-    num_tar_word = 0
     for text, box in pred:
         polygon = box[np.newaxis].astype("int32")
         cv2.polylines(image, polygon, True, (0, 255, 0), 2, )
@@ -60,6 +59,8 @@ app = Flask(__name__, instance_relative_config=True)
 # ensure the instance folder exists
 try:
     os.makedirs(app.instance_path)
+    os.makedirs(upload_dir)
+    os.makedirs(output_dir)
 except OSError:
     pass
 
