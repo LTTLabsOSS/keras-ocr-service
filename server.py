@@ -17,7 +17,7 @@ TEXT_RGB = (255, 0, 0)
 FOUND_RGB = (0, 0, 255)
 
 
-def text_origin(box) -> tuple:
+def text_origin(box) -> tuple[any]:
     """Gets a point for positioning text. See:
     https://docs.opencv.org/3.4/d6/d6e/group__imgproc__draw.html#ga5126f47f883d730f633d74f07456c576
     """
@@ -33,10 +33,22 @@ def mass_center(moments: any) -> tuple[int]:
     return (center_x, center_y)
 
 
+def load_image(path: str) -> np.ndarray:
+    """Loads an image from file and returns it"""
+    image = cv2.imread(path)
+    return cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+
+
 def save_image(image) -> None:
     """Saves an image to disk"""
     out_path = os.path.join(OUTPUT_DIR, "attempt")
     cv2.imwrite(out_path + '_out.png', cv2.cvtColor(image, cv2.COLOR_RGB2BGR))
+
+
+def label_text(image: np.ndarray, polygon: any, box: any, text: str) -> None:
+    org = text_origin(box)
+    cv2.polylines(image, polygon, True, BOX_RGB, 2, )
+    cv2.putText(image, text, org, cv2.FONT_HERSHEY_SIMPLEX, 0.6, TEXT_RGB, 1, cv2.LINE_AA)  
 
 
 def find_word(word: str, image_path: str):
@@ -45,17 +57,14 @@ def find_word(word: str, image_path: str):
     output image. Returns a dictionary with a status and the x, y coordinates of the
     center of the found word's bounding box.
     """
-    image = cv2.imread(image_path)
-    image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+    image = load_image(image_path)
 
     # keras-ocr will automatically download pretrained weights for the detector and recognizer.
     # Each list of predictions in prediction_groups is a list of (word, box) tuples.
     pred = pipeline.recognize([image])[0]
     for text, box in pred:
         polygon = box[np.newaxis].astype("int32")
-        org = text_origin(box)
-        cv2.polylines(image, polygon, True, BOX_RGB, 2, )
-        cv2.putText(image, text, org, cv2.FONT_HERSHEY_SIMPLEX, 0.6, TEXT_RGB, 1, cv2.LINE_AA)
+        label_text(image, polygon, box, text)
 
         if re.match(word, text):
             cv2.polylines(image, polygon, True, FOUND_RGB, 2, )
