@@ -1,26 +1,22 @@
-import tensorflow as tf
-import matplotlib.pyplot as plt
+"""Test find word functionality"""
+import os
+from pathlib import Path
+import re
 import cv2
 import keras_ocr
-from pathlib import Path
+import matplotlib.pyplot as plt
 import numpy as np
-import os
-import re
-import argparse
+import tensorflow as tf
 
-##
-# This is a test to process all the images inside of the images folder and output 
-# bounding boxes of found text to test_output_keras.
-##
-def main() -> None: 
+
+def main() -> None:
+    """This is a test to process all the images inside of the images folder and output 
+    bounding boxes of found text to test_output_keras.
+    """
     # set image path and export folder directory
     input_dir = Path(r".\images")
     output_dir = Path(r".\test_output_keras")
-    
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--word', default='options', type=str, help="Enter a target word")
-    args = parser.parse_args()
-    
+
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
         print("Output directory is created.")
@@ -41,8 +37,9 @@ def main() -> None:
             polygon = box[np.newaxis].astype("int32")
             cv2.polylines(image, polygon, True, (0, 255, 0), 2, )
             org = (box[0][0].astype("int32"), box[0][1].astype("int32"))
-            cv2.putText(image, text, org, cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 0, 0), 1, cv2.LINE_AA)
-            
+            cv2.putText(
+                image, text, org, cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 0, 0), 1, cv2.LINE_AA)
+
             if re.match(word, text):
                 cv2.polylines(image, polygon, True, (0, 0, 255), 2, )
                 for c in polygon:
@@ -61,7 +58,6 @@ def main() -> None:
         cv2.imwrite(out_path + '_out.png', cv2.cvtColor(image, cv2.COLOR_RGB2BGR))
 
         break
-
 
 
 print(tf.__version__)
