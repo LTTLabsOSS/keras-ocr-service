@@ -60,7 +60,7 @@ def find_word(word: str, image_path: str):
         cv2.polylines(image, polygon, True, BOX_RGB, 2, )
         cv2.putText(image, text, org, cv2.FONT_HERSHEY_SIMPLEX, 0.6, TEXT_RGB, 1, cv2.LINE_AA)
 
-        if not re.match(word, text):
+        if re.match(word, text):
             cv2.polylines(image, polygon, True, FOUND_RGB, 2, )
             for c in polygon:
                 center_x, center_y = mass_center(cv2.moments(c))
