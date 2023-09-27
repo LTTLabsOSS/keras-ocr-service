@@ -1,3 +1,4 @@
+"""Check for presence of cuda"""
 import tensorflow as tf
 
 print(f"Tensorflow version: {tf.__version__}")

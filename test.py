@@ -1,67 +1,51 @@
-import tensorflow as tf
-import matplotlib.pyplot as plt
+"""Test find word functionality"""
+from pathlib import Path
+import re
 import cv2
 import keras_ocr
-from pathlib import Path
+import matplotlib.pyplot as plt
 import numpy as np
-import os
-import re
-import argparse
+import tensorflow as tf
+from server import mass_center, load_image, label_text
 
-##
-# This is a test to process all the images inside of the images folder and output 
-# bounding boxes of found text to test_output_keras.
-##
-def main() -> None: 
-    # set image path and export folder directory
-    input_dir = Path(r".\images")
-    output_dir = Path(r".\test_output_keras")
-    
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--word', default='options', type=str, help="Enter a target word")
-    args = parser.parse_args()
-    
-    if not os.path.exists(output_dir):
-        os.makedirs(output_dir)
+INPUT_DIR = "images"
+OUTPUT_DIR = "test_output_keras"
+TEST_WORD = "options"
+
+def main() -> None:
+    """This is a test to process all the images inside of the images folder and output 
+    bounding boxes of found text to test_output_keras.
+    """
+    output_dir = Path(OUTPUT_DIR)
+
+    if not output_dir.exists():
+        output_dir.mkdir(parents=True)
         print("Output directory is created.")
 
     pipeline = keras_ocr.pipeline.Pipeline()
 
-    word = 'options'
-
-    for image_name in os.listdir(input_dir):
-        image = cv2.imread(os.path.join(input_dir, image_name))
-        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-        img_without_suff = os.path.splitext(image_name)[0]
-        out_path = os.path.join(output_dir, img_without_suff)
+    for image_name in Path(INPUT_DIR).iterdir():
+        image = load_image(str(image_name))
+        out_path = str(output_dir / f"{image_name.stem}_out.png")
 
         pred = pipeline.recognize([image])[0]
         num_tar_word = 0
         for text, box in pred:
             polygon = box[np.newaxis].astype("int32")
-            cv2.polylines(image, polygon, True, (0, 255, 0), 2, )
-            org = (box[0][0].astype("int32"), box[0][1].astype("int32"))
-            cv2.putText(image, text, org, cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 0, 0), 1, cv2.LINE_AA)
-            
-            if re.match(word, text):
+            label_text(image, polygon, box, text)
+
+            if re.match(TEST_WORD, text):
                 cv2.polylines(image, polygon, True, (0, 0, 255), 2, )
                 for c in polygon:
-                    # compute the center of the contour
-                    M = cv2.moments(c)
-                    cX = int(M["m10"] / M["m00"])
-                    cY = int(M["m01"] / M["m00"])
-                    # cv2.circle(image, (cX, cY), 3, (255, 255, 255), -1)
-                    print("Center coordinate : " +  str(cX) + " , " + str(cY))
+                    center_x, center_y = mass_center(cv2.moments(c))
+                    print("Center coordinate : " +  str(center_x) + " , " + str(center_y))
                     num_tar_word += 1
         if num_tar_word == 0:
             print("Target word not found.")
 
         plt.imshow(image)
         plt.show()
-        cv2.imwrite(out_path + '_out.png', cv2.cvtColor(image, cv2.COLOR_RGB2BGR))
-
-        break
-
+        cv2.imwrite(out_path, cv2.cvtColor(image, cv2.COLOR_RGB2BGR))
 
 
 print(tf.__version__)
