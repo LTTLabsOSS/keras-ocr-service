@@ -16,11 +16,6 @@ BOX_RGB = (0, 255, 0)
 TEXT_RGB = (255, 0, 0)
 FOUND_RGB = (0, 0, 255)
 
-# keras-ocr will automatically download pretrained
-# weights for the detector and recognizer.
-
-# Each list of predictions in prediction_groups is a list of
-# (word, box) tuples.
 
 def text_origin(box) -> tuple:
     """Gets a point for positioning text. See:
@@ -53,6 +48,8 @@ def find_word(word: str, image_path: str):
     image = cv2.imread(image_path)
     image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
+    # keras-ocr will automatically download pretrained weights for the detector and recognizer.
+    # Each list of predictions in prediction_groups is a list of (word, box) tuples.
     pred = pipeline.recognize([image])[0]
     for text, box in pred:
         polygon = box[np.newaxis].astype("int32")
