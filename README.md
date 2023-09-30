@@ -41,9 +41,6 @@ Staring in the home directory of the user (`cd ~`):
 
 > You can skip this part if you just want to run Keras on the CPU, however many of the game tests that use Keras will fail as the CPU is not fast enough for some of the timings expected in the game tests.
 
-Using Nvidias [driver search tool](https://www.nvidia.com/download/index.aspx?lang=en-us) find the Linux driver for your specific card. In this case we found (at the time of writing) 535.113.01 for the RTX 4090.
-
-![Alt text](doc/found_linux_driver.png)
 
 Use [CUDA GPUs - Compute Capability](https://developer.nvidia.com/cuda-gpus) to find out which version of CUDA your GPU supports. In this case the 4090 supports 8.9.
 
@@ -51,7 +48,9 @@ Use [CUDA GPUs - Compute Capability](https://developer.nvidia.com/cuda-gpus) to 
 
 [TensorFlow tested build configurations](https://www.tensorflow.org/install/source#gpu)
 
-1. Install the graphics card driver, in this example 535.113.01.
+1. [Install the graphics card driver.](https://help.ubuntu.com/community/NvidiaDriversInstallation)
+   - Execute `sudo ubuntu-drivers install` if you want automatic detection.
+   - If you want to see the available drivers, run `sudo ubuntu-drivers list`
 2. Use the following command to verify it is installed `nvidia-smi`.
 3. Install Cuda Tool Kit with Conda
    - Execute `conda install -c conda-forge cudatoolkit=11.8.0`
