@@ -11,7 +11,7 @@ is_process_running() {
     fi
 }
 
-if is_process_running: then
+if is_process_running; then
     echo "Keras Service is already running"
     exit 1
 fi
