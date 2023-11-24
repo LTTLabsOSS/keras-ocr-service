@@ -19,7 +19,7 @@ To start we will install TensorFlow for Linux following the [official documentat
 <!-- omit in toc -->
 ### 1 | Install Miniconda
 
-Miniconda is the reccomended approach for installing TensorFlow with GPU support, we follow this advice.
+Miniconda is the recommended approach for installing TensorFlow with GPU support, we follow this advice.
 
 1. Execute `curl https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -o Miniconda3-latest-Linux-x86_64.sh`
 2. Then execute `bash Miniconda3-latest-Linux-x86_64.sh`
