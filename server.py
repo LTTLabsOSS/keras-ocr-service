@@ -1,6 +1,7 @@
 """Keras OCR service main script"""
 import os
 import re
+import time
 import cv2
 import numpy as np
 import keras_ocr
@@ -10,8 +11,9 @@ from waitress import serve
 
 pipeline = keras_ocr.pipeline.Pipeline()
 
-UPLOAD_DIR = "uploaded"
-OUTPUT_DIR = "output"
+ROOT_DIR = os.path.dirname(os.path.realpath(__file__))
+UPLOAD_DIR = os.path.join(ROOT_DIR, "uploaded")
+OUTPUT_DIR = os.path.join(ROOT_DIR, "output")
 BOX_RGB = (0, 255, 0)
 TEXT_RGB = (255, 0, 0)
 FOUND_RGB = (0, 0, 255)
@@ -86,14 +88,6 @@ def find_word(word: str, image_path: str):
 
 app = Flask(__name__, instance_relative_config=True)
 
-# ensure the instance folder exists
-try:
-    os.makedirs(app.instance_path)
-    os.makedirs(UPLOAD_DIR)
-    os.makedirs(OUTPUT_DIR)
-except OSError:
-    pass
-
 
 @app.route("/process", methods=['POST'])
 def process():
@@ -102,13 +96,25 @@ def process():
         file = request.files['file']
         word = request.form['word']
         file_name = secure_filename(file.filename)
-        file_path = os.path.join(UPLOAD_DIR, file_name)
+        current_time_millis = int(time.time() * 1000)
+        newFileName = str(current_time_millis) + "-" + file_name
+        file_path = os.path.join(UPLOAD_DIR, newFileName)
         file.save(file_path)
+        t1 = int(time.time() * 1000)
         result = find_word(word, file_path)
+        t2 = int(time.time() * 1000)
+        print(f"ocr duration: {str(t2 - t1)} ms")
+        os.remove(file_path)
         return result
-
 
 if __name__ == '__main__':
     # Uncomment below for debug server
     #app.run()
+    
+    try:
+        os.makedirs(app.instance_path, exist_ok=True)
+        os.makedirs(UPLOAD_DIR, exist_ok=True)
+        os.makedirs(OUTPUT_DIR, exist_ok=True)
+    except OSError as err:
+        print(err)
     serve(app, host='0.0.0.0', port=5000)
