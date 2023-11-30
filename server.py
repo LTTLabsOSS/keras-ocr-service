@@ -108,12 +108,11 @@ def process():
         file_path = os.path.join(UPLOAD_DIR, newFileName)
         file.save(file_path)
         with open(logFile, 'a') as log:
-            t1 = int(time.time() * 1000)
             result = find_word(word, file_path)
             t2 = int(time.time() * 1000)
-            duration = str(t2 - t1)
+            duration = str(round(t2 - current_time_millis))
             print(f"ocr duration: {duration} ms")
-            log.write(f"{str(count)}, {duration}\n")
+            log.write(f"{current_time_millis},{str(count)},{duration}\n")
         os.remove(file_path)
         return result
 
@@ -123,8 +122,7 @@ if __name__ == '__main__':
         os.makedirs(UPLOAD_DIR, exist_ok=True)
         os.makedirs(OUTPUT_DIR, exist_ok=True)
         with open(logFile, 'a') as log:
-            log.write(f"count, duration (ms)\n")
-        app.run()
+            log.write(f"timestamp, count, duration (ms)\n")
     except OSError as err:
         print(err)
 
