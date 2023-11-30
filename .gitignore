@@ -2,3 +2,4 @@
 env
 uploaded/*
 output/*
+*.csv

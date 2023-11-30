@@ -1,4 +1,5 @@
 """Keras OCR service main script"""
+from datetime import datetime
 import os
 import re
 import time
@@ -87,12 +88,18 @@ def find_word(word: str, image_path: str):
 
 
 app = Flask(__name__, instance_relative_config=True)
-
+current_time = datetime.now()
+formatted_time = current_time.strftime("%Y-%m-%d_%H-%M")
+logFile = f"{formatted_time}_ocr.csv"
+count = 0
 
 @app.route("/process", methods=['POST'])
 def process():
+    global count
+    global logFile
     """Main API endpoint"""
     if request.method == 'POST':
+        count += 1
         file = request.files['file']
         word = request.form['word']
         file_name = secure_filename(file.filename)
@@ -100,21 +107,27 @@ def process():
         newFileName = str(current_time_millis) + "-" + file_name
         file_path = os.path.join(UPLOAD_DIR, newFileName)
         file.save(file_path)
-        t1 = int(time.time() * 1000)
-        result = find_word(word, file_path)
-        t2 = int(time.time() * 1000)
-        print(f"ocr duration: {str(t2 - t1)} ms")
+        with open(logFile, 'a') as log:
+            t1 = int(time.time() * 1000)
+            result = find_word(word, file_path)
+            t2 = int(time.time() * 1000)
+            duration = str(t2 - t1)
+            print(f"ocr duration: {duration} ms")
+            log.write(f"{str(count)}, {duration}\n")
         os.remove(file_path)
         return result
 
-if __name__ == '__main__':
-    # Uncomment below for debug server
-    #app.run()
-    
+if __name__ == '__main__':    
     try:
         os.makedirs(app.instance_path, exist_ok=True)
         os.makedirs(UPLOAD_DIR, exist_ok=True)
         os.makedirs(OUTPUT_DIR, exist_ok=True)
+        with open(logFile, 'a') as log:
+            log.write(f"count, duration (ms)\n")
+        app.run()
     except OSError as err:
         print(err)
+
+    # Uncomment below for debug server
+    #app.run()
     serve(app, host='0.0.0.0', port=5000)
