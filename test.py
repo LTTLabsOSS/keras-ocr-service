@@ -6,7 +6,7 @@ import keras_ocr
 import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow as tf
-from server import mass_center, load_image, label_text
+from keras_server import mass_center, load_image, label_text
 
 INPUT_DIR = "images"
 OUTPUT_DIR = "test_output_keras"

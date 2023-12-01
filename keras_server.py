@@ -15,6 +15,7 @@ pipeline = keras_ocr.pipeline.Pipeline()
 ROOT_DIR = os.path.dirname(os.path.realpath(__file__))
 UPLOAD_DIR = os.path.join(ROOT_DIR, "uploaded")
 OUTPUT_DIR = os.path.join(ROOT_DIR, "output")
+LOG_DIR = os.path.join(ROOT_DIR, "logs")
 BOX_RGB = (0, 255, 0)
 TEXT_RGB = (255, 0, 0)
 FOUND_RGB = (0, 0, 255)
@@ -90,7 +91,7 @@ def find_word(word: str, image_path: str):
 app = Flask(__name__, instance_relative_config=True)
 current_time = datetime.now()
 formatted_time = current_time.strftime("%Y-%m-%d_%H-%M")
-logFile = f"{formatted_time}_ocr.csv"
+logFile = f"{LOG_DIR}/{formatted_time}_ocr.csv"
 count = 0
 
 @app.route("/process", methods=['POST'])
@@ -121,6 +122,7 @@ if __name__ == '__main__':
         os.makedirs(app.instance_path, exist_ok=True)
         os.makedirs(UPLOAD_DIR, exist_ok=True)
         os.makedirs(OUTPUT_DIR, exist_ok=True)
+        os.makedirs(LOG_DIR, exist_ok=True)
         with open(logFile, 'a') as log:
             log.write(f"timestamp, count, duration (ms)\n")
     except OSError as err:
@@ -128,4 +130,4 @@ if __name__ == '__main__':
 
     # Uncomment below for debug server
     #app.run()
-    serve(app, host='0.0.0.0', port=5000)
+    serve(app, host='0.0.0.0', port=5001)
