@@ -1,5 +1,5 @@
 #!/bin/bash
-python_script="server.py"
+python_script="keras_server.py"
 log_file="server.log"
 
 is_process_running() {
@@ -13,8 +13,9 @@ is_process_running() {
 
 if is_process_running; then
     echo "Keras Service is already running"
-    exit 1
+    pkill -f "$python_script"
+    echo "Killing the existing service"
 fi
 
 python "$python_script" >> "$log_file" 2>&1 &
-echo "Keras Service started, log file: $log_file"
+echo "Keras Service started, log file: $log_file with pid "$!
