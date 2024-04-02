@@ -114,3 +114,27 @@ or
     "result": "not found"
 }
 ```
+
+# Running Docker
+1. On your system login to nvcr.io using docker login.
+
+1. Run this command from the root directory of the repository. If you don't the mounted volume path will be wrong.
+
+```bash
+docker run --shm-size=1g --ulimit memlock=-1 --name keras-ocr -v $(pwd):/repo --gpus all nvcr.io/nvidia/tensorflow:24.03-tf2-py3
+```
+
+> To run this in interactive mode add the flags `it --rm`
+
+```bash
+docker run --shm-size=1g --ulimit memlock=-1 --name keras-ocr -it --rm -v $(pwd):/repo --gpus all nvcr.io/nvidia/tensorflow:24.03-tf2-py3
+```
+
+1. https://pypi.org/project/tensorflow/2.12.0/
+2. https://medium.com/python-mvp/upgrade-python-3-10-to-3-11-on-ubuntu-22-04-2f63e4d326f9
+3. https://pypi.org/project/opencv-python-headless/4.0.1.24/
+4. https://hub.docker.com/r/tensorflow/tensorflow/tags?page=3
+
+```bash
+sudo docker run --shm-size=1g --ulimit memlock=-1 --name keras-ocr -it --rm -v $(pwd):/repo --gpus all tensorflow/tensorflow:2.12.0-gpu
+``` 

@@ -1,0 +1,1 @@
+FROM nvcr.io/nvidia/tensorflow:24.03-tf2-py3
