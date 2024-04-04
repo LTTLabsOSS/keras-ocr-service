@@ -9,6 +9,9 @@ jobs:
   build:
 
     if: github.event.pull_request.merged == true
+    permissions:
+        contents: read
+        packages: write
     runs-on: ubuntu-latest
     env:
       IMAGE_NAME: keras-ocr
