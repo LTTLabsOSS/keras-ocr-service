@@ -137,4 +137,4 @@ docker run --shm-size=1g --ulimit memlock=-1 --name keras-ocr -it --rm -v $(pwd)
 
 ```bash
 sudo docker run --shm-size=1g --ulimit memlock=-1 --name keras-ocr -it --rm -v $(pwd):/repo --gpus all tensorflow/tensorflow:2.12.0-gpu
-``` 
+```
