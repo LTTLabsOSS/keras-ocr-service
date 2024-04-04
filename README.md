@@ -1,22 +1,20 @@
-<!-- omit in toc -->
-# keras-ocr Project
+# Keras OCR Flask Service
 
-This is a project aiming to find the position (center coordinate) of a target word of a screenshot.
+This service, built with Python and Flask, utilizes Optical Character Recognition (OCR) technology to pinpoint words in images with remarkable precision. Simply submit an image along with a target word via a POST request, and the tool goes to work. If the word is located, it returns the exact coordinates of where it was found within the image. If the word remains elusive, the service will let you know it couldn't find it. 
 
-<!-- omit in toc -->
-## Table of Contents
-- [Installation](#installation)
-- [Local Usage](#local-usage)
-- [API Usage](#api-usage)
+Primary technologies used:
 
-## Installation
+- [Flask](https://flask.palletsprojects.com/en/3.0.x/)
+- [keras-ocr](https://github.com/faustomorales/keras-ocr)
+- [TensorFlow](https://www.tensorflow.org/)
+
+## Native Ubuntu Installation
 
 To start we will install TensorFlow for Linux following the [official documentation](https://www.tensorflow.org/install/pip#linux). Our instructions assume you are using an Nvidia graphics card for CUDA acceleration.  
 
 - We standardized on installing Keras OCR on Ubuntu Server 20.04 and these instructions are from a fresh install.
 - This project is currently using TensorFlow 2.12.0
 
-<!-- omit in toc -->
 ### 1 | Install Miniconda
 
 Miniconda is the recommended approach for installing TensorFlow with GPU support, we follow this advice.
@@ -26,7 +24,7 @@ Miniconda is the recommended approach for installing TensorFlow with GPU support
     - You may need to restart your terminal or source ~/.bashrc to enable the conda command.
     - Use conda -V to test if it is installed successfully.
 
-<!-- omit in toc -->
+
 ### 2 | Create a conda environment
 
 We will create a conda environment in which to operate. In Labs we use the `/home/<user>` directory. We stick with the home directory because most of our deploys are to native machines with no other services; they are meant just for Keras.
@@ -36,7 +34,7 @@ Staring in the home directory of the user (`cd ~`):
 1. Execute `conda create --name tf python=3.10`
 2. Activate the environment with `conda activate tf` 
 
-<!-- omit in toc -->
+
 ### 3 | Install GPU Driver, CUDA Toolkit, and cuDNN.
 
 > You can skip this part if you just want to run Keras on the CPU, however many of the game tests that use Keras will fail as the CPU is not fast enough for some of the timings expected in the game tests.
@@ -78,7 +76,6 @@ Test it works on GPU
 python3 -c "import tensorflow as tf; print(tf.config.list_physical_devices('GPU'))"
 ```
 
-<!-- omit in toc -->
 ### Run Keras OCR API
 Now we can install the rest of the dependencies and test if our API is working.
 
@@ -89,14 +86,36 @@ Now we can install the rest of the dependencies and test if our API is working.
     - It should print out that GPU is available.
 3. Execute `run-keras-service.sh`
 
-## Local Usage
-Input images or screenshots will need to be stored in the folder 'images'. 
+## Docker Installation Ubuntu
 
-The default target word is 'options'.
+This document does not provide detailed instructions on installing docker onto your system. 
 
-The script will draw the bounding boxes of all the detected words in green. And the target word will be framed in a blue bounding box. Output images will be stored in the folder 'test_output_keras'.
+The pre-requisites are that:
+1. You have installed GPU driver and nvidia-smi returns expected output.
+   - ![expected nvidia-smi command output](doc/nvidia_smi_command_output.png)
+2. Install NVIDIA Container ToolKit
+   - We used [1.8.1 version of NVIDIA Container ToolKit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/1.8.1/install-guide.html)
 
-## API Usage
+## Running the service as a container
+> :warning: The docker file in this repository has only been tested with our Ubuntu systems built purposefully for running this image. Your mileage may vary.
+
+### 1 | Build the image
+```bash
+docker build -t <tag-name> . 
+```
+
+### 2 | Run the container
+```bash
+sudo docker run --shm-size=1g --ulimit memlock=-1 --name keras-ocr -v $(pwd):/repo --gpus all <tag-name>
+```
+
+> To run your container in interactive mode add the flags `it --rm`
+
+```bash
+sudo docker run --shm-size=1g --ulimit memlock=-1 --name keras-ocr -it --rm -v $(pwd):/repo --gpus all tensorflow/tensorflow:2.12.0-gpu
+```
+
+# How to use via HTTP API
 1. Send a post request to /process as form-data
 2. Include the screenshot as "file" and the word you are searching for as "word"
 3. Will return a json response
