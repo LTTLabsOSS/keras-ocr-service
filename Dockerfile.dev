@@ -14,12 +14,3 @@ RUN pip install --upgrade pip
 
 # opencv depedency
 RUN apt install -y libgl1-mesa-glx
-
-COPY . /repo
-WORKDIR /repo
-
-RUN pip install -r requirements_docker.txt
-RUN pip install tensorflow==2.12.0
-
-EXPOSE 5001
-CMD ["python", "keras_server.py"]
