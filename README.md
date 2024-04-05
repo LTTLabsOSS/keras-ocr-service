@@ -101,18 +101,47 @@ The pre-requisites are that:
 
 ### 1 | Build the image
 ```bash
-docker build -t <tag-name> . 
+docker build -t <tag-name> -f Dockerfile . 
 ```
 
 ### 2 | Run the container
+To run the container you just built run
 ```bash
-sudo docker run --shm-size=1g --ulimit memlock=-1 --name keras-ocr -v $(pwd):/repo --gpus all <tag-name>
+docker run --shm-size=1g --ulimit memlock=-1 --name keras-ocr -p 5001:5001 --gpus all <tag-name>
+```
+This container has all the neccessary dependencies to run the service, including the model. You should be able to access the HTTP at port 5001 once launched.
+
+## Devlopment docker container
+
+You can run and build the container this way if you want to be able to make changes to the code and pick those changes up without having to rebuild the whole container.
+
+### 1 | Build the image
+```bash
+docker build -t <tag-name> -f Dockerfile.dev . 
 ```
 
-> To run your container in interactive mode add the flags `it --rm`
+### 2 | Run the container
+Ensure you run this command from the root of the respository so the correct directory is mounted to the container.
 
 ```bash
-sudo docker run --shm-size=1g --ulimit memlock=-1 --name keras-ocr -it --rm -v $(pwd):/repo --gpus all tensorflow/tensorflow:2.12.0-gpu
+sudo docker run --shm-size=1g --ulimit memlock=-1 --name keras-ocr -it -v $(pwd):/repo --gpus all <tag-name>
+```
+
+### 3 | Install dependencies and run
+Once you run the command from step 2 you should have been greeted to an SSH session into the running container.
+
+```bash
+# install general dependencies
+pip install -r requirements_docker.txt
+
+# install tensorflow
+pip install tensorflow==2.12.0
+
+# test if GPU is detected
+python test_cudapresence.py
+
+# run the service
+python keras_server.py
 ```
 
 # How to use via HTTP API
