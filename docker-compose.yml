@@ -1,0 +1,30 @@
+name: keras-ocr
+services:
+    keras-ocr:
+        restart: always
+        build: .
+        shm_size: 1g
+        ulimits:
+            memlock: -1
+        container_name: keras-ocr
+        ports:
+            - 5001:5001
+        volumes:
+            - ~/keras-ocr-work:/keras-ocr-work
+        environment:
+            WORK_DIR: "/keras-ocr-work"
+        deploy:
+            resources:
+                reservations:
+                    devices:
+                        - driver: nvidia
+                          count: all
+                          capabilities:
+                              - gpu
+        image: keras-ocr
+
+    restarter:
+        image: docker:cli
+        volumes: ["/var/run/docker.sock:/var/run/docker.sock"]
+        command: ["/bin/sh", "-c", "while true; do sleep 86400; docker restart keras-ocr; done"]
+        restart: unless-stopped
