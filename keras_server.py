@@ -9,7 +9,7 @@ import cv2
 import numpy as np
 import keras_ocr
 from werkzeug.utils import secure_filename
-from flask import Flask, request
+from flask import Flask, make_response, request
 from pathlib import Path
 from waitress import serve
 import logging
@@ -23,6 +23,7 @@ UPLOAD_DIR = None
 BOX_RGB = (0, 255, 0)
 TEXT_RGB = (255, 0, 0)
 FOUND_RGB = (0, 0, 255)
+
 
 def text_origin(box) -> tuple[any]:
     """Gets a point for positioning text. See:
@@ -49,10 +50,11 @@ def save_image(image) -> None:
 def label_text(image: np.ndarray, polygon: any, box: any, text: str) -> None:
     org = text_origin(box)
     cv2.polylines(image, polygon, True, BOX_RGB, 2, )
-    cv2.putText(image, text, org, cv2.FONT_HERSHEY_SIMPLEX, 0.6, TEXT_RGB, 1, cv2.LINE_AA)  
+    cv2.putText(image, text, org, cv2.FONT_HERSHEY_SIMPLEX,
+                0.6, TEXT_RGB, 1, cv2.LINE_AA)
 
 
-def find_word(word: str, image_to_process):
+def find_word(word: str, return_image: bool, image_to_process):
     """Given a target word and an image path. Searches for the word in an image.
     Will draw boxes around found text and label them with the detected word for the
     output image. Returns a dictionary with a status and the x, y coordinates of the
@@ -86,6 +88,7 @@ def find_word(word: str, image_to_process):
 
 FLASK_APP = Flask(__name__, instance_relative_config=True)
 
+
 def setup_logging(log_dir: str) -> None:
     """setup logging configuration"""
     logging_format = '%(asctime)s %(levelname)-s %(message)s'
@@ -98,7 +101,7 @@ def setup_logging(log_dir: str) -> None:
     formatter = logging.Formatter(logging_format)
     console.setFormatter(formatter)
     logging.getLogger('').addHandler(console)
-    
+
 
 @FLASK_APP.route("/process", methods=['POST'])
 def process():
@@ -112,18 +115,45 @@ def process():
         process_me = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         word = request.form['word']
         current_time_millis = int(time.time() * 1000)
-        result = find_word(word, process_me)
+        result = find_word(word, False, process_me)
         t2 = int(time.time() * 1000)
         duration = round(t2 - current_time_millis)
         logging.info("ocr duration: %d ms", duration)
         return result
 
 
+@FLASK_APP.route("/test_image", methods=['POST'])
+def test_image():
+    global count
+    global logFile
+    """return an image with the words found on it"""
+    if request.method == 'POST':
+        file = request.files['file'].read()
+        file_bytes = np.fromstring(file, np.uint8)
+        img = cv2.imdecode(file_bytes, cv2.IMREAD_UNCHANGED)
+        image_to_process = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        word = request.form['word']
+        pred = pipeline.recognize([image_to_process])[0]
+        for text, box in pred:
+            polygon = box[np.newaxis].astype("int32")
+            label_text(image_to_process, polygon, box, text)
+
+        if re.match(word, text):
+            cv2.polylines(image_to_process, polygon, True, FOUND_RGB, 2, )
+
+        response_image = cv2.cvtColor(image_to_process, cv2.COLOR_RGB2BGR)
+        _, encoded_image = cv2.imencode('.jpg', response_image)
+        response = make_response(encoded_image.tobytes())
+        response.headers['Content-Type'] = "image/jpeg"
+        response.headers['Content-Length'] = len(encoded_image)
+        return response
+
+
 def main():
     """entry point"""
     global UPLOAD_DIR
     global OUTPUT_DIR
-    
+
     try:
         work_dir = os.environ.get("WORK_DIR", None)
         if work_dir is None:
@@ -134,22 +164,22 @@ def main():
 
         UPLOAD_DIR = work_dir / "uploaded"
         OUTPUT_DIR = work_dir / "output"
-        log_dir = ROOT_DIR /"logs"
+        log_dir = ROOT_DIR / "logs"
 
         UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
         OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
         log_dir.mkdir(parents=True, exist_ok=True)
         Path(FLASK_APP.instance_path).mkdir(exist_ok=True)
-        
+
         setup_logging(log_dir)
-        
-         # Uncomment below for debug server
-        #FLASK_APP.run()
+
+        # Uncomment below for debug server
+        # FLASK_APP.run()
         serve(FLASK_APP, host='0.0.0.0', port=5001)
     except OSError as err:
         logging.exception(err)
         sys.exit(1)
 
 
-if __name__ == '__main__':  
+if __name__ == '__main__':
     main()
